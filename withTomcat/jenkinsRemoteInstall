@@ -1,0 +1,61 @@
+#!/bin/sh
+if [[ "${1}" == "help" || "${1}" == "" ]]
+ then
+  echo "Usage: sh jenkinsRemoteInstall.sh [PROFILE] [ENVIRONMENT1],[ENVIRONMENT]...."
+  echo "***************" 
+  echo "****PROFILES "
+  echo "[YOURSPECIFICPROFILE1]"
+  echo "[YOURSPECIFICPROFILE2]"
+  echo "***************" 
+  echo "****ENVIRONMENTS "
+  echo "[YOURENVIRONMENT1]"
+  echo "[YOURENVIRONMENT2]"
+  exit 1;
+fi
+PROFILE=$1
+ENVIRONMENTS=$2
+FILE_NAME="[YOURWARNAME].war"
+SERVERS=""
+echo "ENVIRONMENTS: $ENVIRONMENTS"
+if [[ "${ENVIRONMENTS}" == *"[YOURENVIRONMENT1]"* ]]
+ then
+  SERVERS=$SERVERS' [YOURENVIRONMENT1].com'
+fi
+if [[ "${ENVIRONMENTS}" == *"[YOURENVIRONMENT2]"* ]]
+ then
+  SERVERS=$SERVERS' [YOURENVIRONMENT2].com'
+fi
+
+if [ "${SERVERS}" == "" ]
+ then
+  echo "Need one Environment"
+  exit 1; 
+fi
+echo "************************************"
+echo "*     VERSION $PROFILE             *"
+echo "************************************"
+echo "*"
+echo "DEPLOY_DIR:$DEPLOY_DIR"
+echo "FILE_NAME:$FILE_NAME"
+echo "PROFILE:$PROFILE"
+echo "ENVIRONMENTS:$ENVIRONMENTS"
+echo "SERVERS:$SERVERS"
+echo "PROPERTIES:$PROPERTIES"
+echo "------------------------------------"
+echo "*"
+cd ../../..
+echo "Init install in this servers $SERVERS"
+for SERVER in $SERVERS
+do
+  echo "Deploy $PROFILE to server ${SERVER}"
+  BASEDIR="/home/[YOURUSERINYOURSERVERS]/"
+  hostname
+  scp -i /home/jenkins/id_rsa resources/compile/remoteCommands.sh front/target/[YOURWARNAME]*.war echo [YOURUSERINYOURSERVERS]@${SERVER}:${BASEDIR}tmp
+  echo "Copy scripts and war to tmp directory in server"
+  ssh -i /home/jenkins/id_rsa [YOURUSERINYOURSERVERS]@${SERVER} '
+    mv tmp/remoteCommands.sh tomcat7/bin
+    cd tomcat7/bin
+    sh remoteCommands.sh
+    cd
+  '
+done
